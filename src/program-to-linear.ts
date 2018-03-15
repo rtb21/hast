@@ -36,6 +36,16 @@ function nodeToLinear(input: Node): item[] {
             ];
         case 'ExpressionStatement':
             return [{ type: 'expression statement' }, ...nodeToLinear(input.expression)];
+        case 'ForStatement':
+            return [
+                { type: 'for statement' },
+                ...nodeToLinear(input.body),
+            ]
+            .concat(input.init ? [{ type: 'for init' }, ...nodeToLinear(input.init)] : [])
+            .concat(input.test ? [{ type: 'for test' }, ...nodeToLinear(input.test)] : [])
+            .concat(input.update ? [{ type: 'for update' }, ...nodeToLinear(input.update)]: []);
+        case 'ForInStatement':
+            return [{ type: 'for in statement' }, ...nodeToLinear(input.body), ...nodeToLinear(input.left), ...nodeToLinear(input.right)];
         case 'FunctionDeclaration':
             return [ 
                 { type: `function declaration ${input.id.name}` },
@@ -58,6 +68,9 @@ function nodeToLinear(input: Node): item[] {
             ];
         case 'Identifier':
             return [{ type: `identifier ${input.name}` }];
+        case 'IfStatement':
+            return [{ type: 'if statement'}, ...nodeToLinear(input.test), ...nodeToLinear(input.consequent)]
+                .concat( input.alternate ? [{type: 'if alternate'}, ...nodeToLinear(input.alternate)] : []);
         case 'Literal':
             return [{ type: `literal ${input.raw}` }, { type: `value ${input.value}`}];
         case 'LogicalExpression':
@@ -72,16 +85,30 @@ function nodeToLinear(input: Node): item[] {
             ];
         case 'NewExpression':
             return [{ type: 'new expression' }, ...nodeToLinear(input.callee), ...nodesToLinear(input.arguments), { type: 'end' }];
+        case 'ObjectExpression':
+            return [{ type: 'object expression' }, ...nodesToLinear(input.properties), { type: 'end' }];
+        case 'Property':
+            return [
+                { type: `property ${input.computed ? 'computed' : ''} ${input.method ? 'method' : ''} ${input.shorthand ? 'shorthand' : ''} ${input.kind}` },
+                ...nodeToLinear(input.key),
+                ...nodeToLinear(input.value),
+            ];
         case 'ReturnStatement':
             return input.argument ? [
                 { type: 'return statement' }, ...nodeToLinear(input.argument)
             ] : [
                 { type: 'return statement' }, { type: 'end' }
             ];
+        case 'SequenceExpression':
+            return [{ type: 'sequence exression' }, ...nodesToLinear(input.expressions), { type: 'end' }];
         case 'ThisExpression':
             return [{ type: 'this expression' }];
+        case 'ThrowStatement':
+            return [{ type: 'throw statement' }, ...nodeToLinear(input.argument)];
         case 'UnaryExpression':
             return [{ type: `unary ${input.prefix ? 'prefix' : 'postfix'} expression `}, ...nodeToLinear(input.argument)];
+        case 'UpdateExpression':
+            return [{ type: `update expression ${input.operator} ${input.prefix ? 'prefix' : 'postfix'}` }, ...nodeToLinear(input.argument)];
         case 'VariableDeclaration':
             return [{ type: `variable declaration ${input.kind}` }, ...nodesToLinear(input.declarations), { type: 'end' }];
         case 'VariableDeclarator':

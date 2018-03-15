@@ -11,6 +11,8 @@ function nodeToLinear(input: Node): item[] {
     switch (input.type) {
         case 'ArrayExpression':
             return [{ type: 'array expression' }, ...nodesToLinear(input.elements), { type: 'end' }];
+        case 'AssignmentExpression':
+            return [{ type: `assignment expression ${input.operator}`}, ...nodeToLinear(input.left), ...nodeToLinear(input.right)];
         case 'BinaryExpression':
             return [
                 { type: 'binary expression' },
@@ -20,6 +22,8 @@ function nodeToLinear(input: Node): item[] {
             ];
         case 'BlockStatement':
             return [{ type: 'block statement' }, ...nodesToLinear(input.body), { type: 'end' }];
+        case 'BreakStatement':
+            return [{ type: `break statement ${input.label ? input.label : ''}`}];
         case 'CallExpression':
             return [
                 { type: 'call expression' },
@@ -27,6 +31,8 @@ function nodeToLinear(input: Node): item[] {
                 { type: 'callee' },
                 ...nodeToLinear(input.callee),
             ];
+        case 'CatchClause':
+            return [{ type: 'catch clause' }, ...nodeToLinear(input.param), ...nodeToLinear(input.body)];
         case 'ConditionalExpression':
             return [
                 { type: 'conditional expression' },
@@ -34,6 +40,10 @@ function nodeToLinear(input: Node): item[] {
                 ...nodeToLinear(input.consequent),
                 ...nodeToLinear(input.alternate),
             ];
+        case 'DoWhileStatement':
+            return [{ type: 'do while statement'}, ...nodeToLinear(input.test), ...nodeToLinear(input.body)];
+        case 'EmptyStatement':
+            return [{ type: 'empty statement'}];
         case 'ExpressionStatement':
             return [{ type: 'expression statement' }, ...nodeToLinear(input.expression)];
         case 'ForStatement':
@@ -105,6 +115,10 @@ function nodeToLinear(input: Node): item[] {
             return [{ type: 'this expression' }];
         case 'ThrowStatement':
             return [{ type: 'throw statement' }, ...nodeToLinear(input.argument)];
+        case 'TryStatement':
+            return [{ type: 'try statement' }, ...nodeToLinear(input.block)]
+                .concat(input.handler ? [{ type: 'try handler'}, ...nodeToLinear(input.handler)] : [])
+                .concat(input.finalizer ? [{ type: 'try finalizer'}, ...nodeToLinear(input.finalizer)] : []);
         case 'UnaryExpression':
             return [{ type: `unary ${input.prefix ? 'prefix' : 'postfix'} expression `}, ...nodeToLinear(input.argument)];
         case 'UpdateExpression':
@@ -117,6 +131,8 @@ function nodeToLinear(input: Node): item[] {
             ] : [
                 { type: 'variable declarator' }, ...nodeToLinear(input.id),
             ];
+        case 'WhileStatement':
+            return [{ type: 'while statement' }, ...nodeToLinear(input.test), ...nodeToLinear(input.body)];
         default:
             const unknown = unknownElements.find(element => element.type === input.type);
             if (unknown) {
